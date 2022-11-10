@@ -2,11 +2,11 @@
   <div class="croot">
     <div class="header">
       <div class="header-content">
-        <div class="header-content-name">Husky markets</div>
+        <div class="header-content-name">Tortoise markets</div>
         <div class="header-content-btns">
           <el-button type="text" @click="pledgeHandler">Pledge</el-button>
           <el-button type="text" @click="createGame">Create</el-button>
-          <el-button type="text">Quick Guide</el-button>
+          <el-button type="text" @click="gotoDocument">Document</el-button>
           <!-- <el-button type="info" size="mini">Quick Guide</el-button> -->
           <el-button type="success" icon="el-icon-wallet" @click="connectWallet">{{connectShowAddress}}</el-button>
         </div>
@@ -143,9 +143,8 @@ Here's a edited version of your code
 
 <script>
 import BetItem from './BetItem'
-import Web3 from 'web3'
-import contractAbi from '../../abi.json'
-import axios from 'axios'
+import {post} from '../request/http'
+import {pledge, connectWallet, betting} from '../request/ether'
 
 export default {
   components: {
@@ -157,7 +156,7 @@ export default {
       betAmount: null,
       bigsmallradio: 0,
       systemItems: [{ id: 1, name: 'game1' }, {id: 2, name: 'game2'}, {id: 3}, {id: 4}],
-      customItems: [{ id: 1, name: 'game1' }, {id: 2, name: 'game2'}, {id: 3}, {id: 4}, {id: 2, name: 'game2'}, {id: 3}, {id: 4}],
+      customItems: [{ id: 1, name: 'game1' }, {id: 2, name: 'game2'}, {id: 3}, {id: 4}],
       count: 10,
       loading: false,
       testurl: 'https://img1.baidu.com/it/u=3760402741,2870972263&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256',
@@ -181,53 +180,35 @@ export default {
   computed: {
   },
   created () {
-    axios.post('http://192.168.120.7:12000/husky/v1/games', {
-      'yeWu': 'YEWU_001',
-      'shuJu': {
-      }
-
+    post('/tortoises/v1/games', {
+      type: 1,
+      data: {}
     }).then((res) => {
       // 接口调用成功回调
       console.log('success: ', res)
 
-      this.$data.systemItems = res.data.data
-      this.$data.customItems = res.data.data
+      this.$data.systemItems = res.data
+      this.$data.customItems = res.data
     }).catch((error) => {
       console.log('err: ', error)
     })
   },
   methods: {
+    gotoDocument () {
+      window.open('https://github.com/tortoisebtc/Document')
+    },
     pledgeHandler () {
       this.pledgeDialogVisible = true
     },
     confirmPledge () {
       console.log('test', this.connectAddress)
-      let val = parseInt(this.pledgeForm.amount) * 1e18
-      console.log('pledge value: ', this.pledgeForm.amount, '0x' + val.toString(16))
-      const web3 = new Web3(new Web3.providers.HttpProvider('http://192.168.120.160:28102'))
-      const contractAddress = '0x7D6e930A802f484dE9733Ed7583aD87Fe9B4427A'
-      const myContract = new web3.eth.Contract(contractAbi, contractAddress)
-
-      window.ethereum
-        .request({
-          method: 'eth_sendTransaction',
-          params: [
-            {
-              from: this.connectAddress,
-              to: contractAddress,
-              value: '0x' + val.toString(16), // 1/1000 matic
-              data: myContract.methods.pledge().encodeABI()
-            }
-          ]
-        })
-        .then((txHash) => {
-          console.log(txHash)
+      let value = parseInt(this.pledgeForm.amount) * 1e18
+      pledge(this.connectAddress, value)
+        .then(res => {
+          this.pledgeDialogVisible = false
         })
         .catch((_error) => {
           this.walletTip()
-        })
-        .finally(() => {
-          this.pledgeDialogVisible = false
         })
     },
     walletTip () {
@@ -246,26 +227,7 @@ export default {
     betHandler () {
       this.centerDialogVisible = false
 
-      const web3 = new Web3(new Web3.providers.HttpProvider('http://192.168.120.160:28102'))
-      // const contractAddress = '0xb3Ec17eF20d6bC332A3b09a3B87155dd048eD625'
-      const contractAddress = '0x7D6e930A802f484dE9733Ed7583aD87Fe9B4427A'
-      const myContract = new web3.eth.Contract(contractAbi, contractAddress)
-
-      window.ethereum
-        .request({
-          method: 'eth_sendTransaction',
-          params: [
-            {
-              from: this.connectAddress,
-              to: contractAddress,
-              value: '0x8ac7230489e80000', // 10 matic
-              // gasPrice: '0x429d069189e0000',
-              // gas: '0x2710',
-              data: myContract.methods.pay().encodeABI(),
-              chainId: 20220108
-            }
-          ]
-        })
+      betting(this.connectAddress, '0x8ac7230489e80000')
         .then((txHash) => console.log(txHash))
         .catch((error) => console.log(error))
     },
@@ -281,15 +243,14 @@ export default {
         this.$data.connectShowAddress = 'connect wallet'
         return
       }
-      if (window.ethereum) {
-        window.ethereum.enable().then((res) => {
-          this.$data.connectAddress = res[0]
-          this.$data.connectStatus = true
-          this.$data.connectShowAddress = res[0].substring(0, 7) + '...' + res[0].substr(-4, 4)
-        })
-      } else {
+
+      connectWallet().then(res => {
+        this.$data.connectAddress = res
+        this.$data.connectStatus = true
+        this.$data.connectShowAddress = res.substring(0, 7) + '...' + res.substr(-4, 4)
+      }).catch(e => {
         alert('请安装metamask钱包')
-      }
+      })
     }
   }
 }
