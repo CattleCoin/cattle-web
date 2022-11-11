@@ -44,35 +44,36 @@
       <el-dialog
         title="BETTING"
         :visible.sync="centerDialogVisible"
-        width="900px"
+        width="500px"
         custom-class="cdialog"
         center>
         <div class="betdetail">
-          <div class="betdetail-left">
+          <!-- <div class="betdetail-left">
             You need to attach the @Component decorator to a class directly and you will not get anything until you bootstrap your root component
 
 I am assuming you main root component is PonyComponent
 
 Here's a edited version of your code
-          </div>
-          <div class="betdetail-right">
-            <div>TOTAL USERS: 1000</div>
-            <div>BIG POOL: 100000 MATIC</div>
-            <div>SMALL POOL: 100000 MATIC</div>
+          </div> -->
+          <div class="betdetail-content">
+            <div>Name: <span class="betdetail-value">{{gameDetail.name}}</span></div>
+            <div>Total Players: <span class="betdetail-value">{{gameDetail.players}}</span></div>
+            <div>Small Pool: <span class="betdetail-value">{{gameDetail.big}}</span> <span class="dw">MATIC</span></div>
+            <div>Big Pool: <span class="betdetail-value">{{gameDetail.small}} </span><span class="dw">MATIC</span></div>
             <div class="right-select">
-              <div>SELECT:</div>
+              <div>Option:</div>
               <div class="right-select-items">
-                <el-radio v-model="bigsmallradio" label="1">BIG</el-radio>
-                <el-radio v-model="bigsmallradio" label="2">SMALL</el-radio>
+                <el-radio v-model="bigsmallradio" label="1">Small</el-radio>
+                <el-radio v-model="bigsmallradio" label="2">Big</el-radio>
               </div>
             </div>
 
             <div class="right-select">
-              <div>AMOUNT:</div>
+              <div>Amount:</div>
               <div class="right-select-items">
                 <el-input size="mini" v-model="betAmount" placeholder="INPUT AMOUNT"></el-input>
               </div>
-              <div>MATIC</div>
+              <div><span class="dw">MATIC</span></div>
             </div>
 
           </div>
@@ -114,6 +115,7 @@ Here's a edited version of your code
     </div>
     <div>
       <el-dialog
+      title="Pledge"
         :visible.sync="pledgeDialogVisible"
         width="500px"
         custom-class="cdialog"
@@ -167,6 +169,13 @@ export default {
       centerDialogVisible: false,
       createGameDialogVisible: false,
       pledgeDialogVisible: false,
+      gameDetail: {
+        owner: 'xxxxx',
+        players: 111,
+        small: 11,
+        big: 22,
+        name: 'abcd'
+      },
       form: {
         name: '',
         cover: '',
@@ -279,8 +288,21 @@ export default {
     color: aliceblue;
     display: inline-block;
   }
+  .el-radio__input.is-checked .el-radio__inner {
+    background-color: greenyellow;
+    background: greenyellow;
+  }
+  .el-radio {
+    color: aliceblue;
+    font-size: 14px;
+
+  }
   .el-form-item__content {
     font-size: 18px;
+  }
+  .el-radio__input.is-checked+.el-radio__label {
+    color: greenyellow;
+    font-size: 20px;
   }
 
  .header {
@@ -294,6 +316,11 @@ export default {
     position: fixed;
     width: 100%;
     top: 0;
+  }
+
+  .header .el-button--text {
+    font-size: 16px;
+    /* color: hsl(0, 20%, 96%); */
   }
 
   .header-content {
@@ -357,7 +384,8 @@ export default {
 
   .cdialog {
     border-radius: 30px;
-    background-color: rgb(31, 29, 29);
+    background-color: rgb(106 104 104);
+    /* background-color: rgb(31, 29, 29); */
     color: aliceblue;
     border: 1px solid rgb(105, 104, 104);
   }
@@ -368,26 +396,39 @@ export default {
   .betdetail {
     display: flex;
     flex-direction: row;
+
+  }
+  .el-dialog__title {
+    color: aliceblue;
   }
   .betdetail-left {
-    width: 500px;
-    height: 200px;
+    /* width: 500px; */
+    height: 300px;
     background-color: #B3C0D1;
   }
+  .dw {
+    font-size: 14px;
+  }
 
-  .betdetail-right {
+  .betdetail-content {
     width: 400px;
-    height: 100px;
+    height: 200px;
     font-size: 20px;
     font-weight: 400;
     margin-left: 10px;
-    color: brown;
+    color: rgb(245, 238, 238);
   }
-  .betdetail-right > div {
+
+  .betdetail-content > div {
     margin-bottom: 5px;
   }
+  .betdetail-value {
+    color: #a6d480;
+    font-size: 20px;
+    margin-left: 10px;
+  }
   .right-select {
-    margin: 20px 0px;
+    margin: 18px 0px;
     display: flex;
     flex-direction: row;
   }

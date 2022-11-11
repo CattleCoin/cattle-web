@@ -1,14 +1,14 @@
 <template>
     <div class="citem" @click="clickItem(parentObj)">
         <div class="citem-left">
-            <img :src="imgurl">
+            <img :src="parentObj.cover">
         </div>
         <div class="citem-right">
             <!-- <div>Number: {{parentObj.id}}</div> -->
             <div>Name: {{parentObj.name}} </div>
-            <div>Status: jfjskjdf </div>
+            <div>Status: {{GAME_STATUS[parseInt(parentObj.status)]}} </div>
             <!-- <div>users: jfjskjdf </div> -->
-            <div>Deadlines: 10minutes </div>
+            <div>Time Left: {{parseInt(parentObj.remainTime / 60)}} mins</div>
         </div>
 
     </div>
@@ -26,6 +26,11 @@ export default {
     imgurl: {
       type: String,
       default: 'https://www.ghi888.com/wp-content/uploads/2021/05/%E6%B3%B0%E5%9B%BD%E8%B5%8C%E5%8D%9A-1200x889.jpg'
+    }
+  },
+  data () {
+    return {
+      GAME_STATUS: ['active', 'resolving', 'over']
     }
   },
   methods: {
