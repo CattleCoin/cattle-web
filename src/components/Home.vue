@@ -6,6 +6,7 @@
         <div class="header-content-btns">
           <el-button type="text" @click="pledgeHandler">Pledge</el-button>
           <el-button type="text" @click="createGame">Create</el-button>
+          <el-button type="text" @click="showList">Account</el-button>
           <el-button type="text" @click="gotoDocument">Document</el-button>
           <!-- <el-button type="info" size="mini">Quick Guide</el-button> -->
           <el-button type="success" icon="el-icon-wallet" @click="connectWallet">{{connectShowAddress}}</el-button>
@@ -42,7 +43,7 @@
 
     <div>
       <el-dialog
-        title="BETTING"
+        title="Betting"
         :visible.sync="centerDialogVisible"
         width="500px"
         custom-class="cdialog"
@@ -57,14 +58,14 @@ Here's a edited version of your code
           </div> -->
           <div class="betdetail-content">
             <div>Name: <span class="betdetail-value">{{gameDetail.name}}</span></div>
-            <div>Total Players: <span class="betdetail-value">{{gameDetail.players}}</span></div>
-            <div>Small Pool: <span class="betdetail-value">{{gameDetail.big}}</span> <span class="dw">MATIC</span></div>
-            <div>Big Pool: <span class="betdetail-value">{{gameDetail.small}} </span><span class="dw">MATIC</span></div>
-            <div class="right-select">
+            <div>Total Players: <span class="betdetail-value">{{gameDetail.game_player_count}}</span></div>
+            <div>Small Pool: <span class="betdetail-value">{{gameDetail.game_bet_a_amount}}</span> <span class="dw">MATIC</span></div>
+            <div>Big Pool: <span class="betdetail-value">{{gameDetail.game_bet_b_amount}} </span><span class="dw">MATIC</span></div>
+            <div class="right-select" v-if="gameDetail.game_type === 1">
               <div>Option:</div>
-              <div class="right-select-items">
-                <el-radio v-model="bigsmallradio" label="1">Small</el-radio>
-                <el-radio v-model="bigsmallradio" label="2">Big</el-radio>
+              <div class="right-select-items" >
+                <el-radio v-model="bigsmallradio" label="0">Small</el-radio>
+                <el-radio v-model="bigsmallradio" label="1">Big</el-radio>
               </div>
             </div>
 
@@ -94,15 +95,15 @@ Here's a edited version of your code
         custom-class="cdialog"
         center>
         <div class="createGameDetail">
-          <el-form ref="form" :model="form" label-width="120px">
+          <el-form ref="gameForm" :model="gameForm" label-width="120px">
             <el-form-item label="name" required>
-              <el-input v-model="form.name" maxlength="30" show-word-limit></el-input>
+              <el-input v-model="gameForm.name" maxlength="30" show-word-limit></el-input>
             </el-form-item>
             <el-form-item label="cover" required>
-              <el-input v-model="form.cover" placeholder="image url" maxlength="120" show-word-limit></el-input>
+              <el-input v-model="gameForm.cover" placeholder="image url" maxlength="120" show-word-limit></el-input>
             </el-form-item>
             <el-form-item label="duration" required>
-              <el-input v-model="form.duration" placeholder="duration(minutes)" max="10080" min="10"></el-input>
+              <el-input v-model="gameForm.duration" placeholder="duration(minutes)" max="10080" min="10"></el-input>
             </el-form-item>
 
           </el-form>
@@ -139,6 +140,58 @@ Here's a edited version of your code
         </span> -->
       </el-dialog>
     </div>
+
+    <div><el-dialog
+        title="Bet List"
+        :visible.sync="betListVisible"
+        custom-class="cdialog"
+        center>
+        <div class="listDetail">
+          <el-table
+        :data="tableData"
+        style="width: 100%"
+        height="700">
+          <el-table-column
+            prop="name"
+            label="Name"
+            width="200">
+          </el-table-column>
+          <el-table-column
+            prop="bet_amount"
+            label="Bet Amount"
+            width="100">
+          </el-table-column>
+          <el-table-column
+            prop="remainTime"
+            label="Remain Time"
+            width="120">
+          </el-table-column>
+          <el-table-column
+            prop="status"
+            label="Status"
+            width="100">
+          </el-table-column>
+          <el-table-column
+            prop="win"
+            label="Win"
+            width="100">
+          </el-table-column>
+          <el-table-column
+            prop="win_amount"
+            label="Win Amount"
+            width="120">
+          </el-table-column>
+          <el-table-column
+            fixed
+            prop="date"
+            label="Date"
+            width="150">
+          </el-table-column>
+        </el-table>
+        </div>
+      </el-dialog>
+
+    </div>
   </div>
 
 </template>
@@ -146,7 +199,7 @@ Here's a edited version of your code
 <script>
 import BetItem from './BetItem'
 import {post} from '../request/http'
-import {pledge, connectWallet, betting} from '../request/ether'
+import {pledge, connectWallet, betting, createGame} from '../request/ether'
 
 export default {
   components: {
@@ -156,34 +209,42 @@ export default {
   data () {
     return {
       betAmount: null,
-      bigsmallradio: 0,
+      bigsmallradio: '1',
       systemItems: [{ id: 1, name: 'game1' }, {id: 2, name: 'game2'}, {id: 3}, {id: 4}],
       customItems: [{ id: 1, name: 'game1' }, {id: 2, name: 'game2'}, {id: 3}, {id: 4}],
       count: 10,
       loading: false,
-      testurl: 'https://img1.baidu.com/it/u=3760402741,2870972263&fm=253&fmt=auto&app=138&f=PNG?w=256&h=256',
-      msg: 'Welcome to Your Vue.js App',
       connectAddress: '',
       connectShowAddress: 'connect wallet',
       connectStatus: false,
       centerDialogVisible: false,
       createGameDialogVisible: false,
       pledgeDialogVisible: false,
+      betListVisible: false,
       gameDetail: {
-        owner: 'xxxxx',
+        address: 'xxxxx',
         players: 111,
         small: 11,
         big: 22,
-        name: 'abcd'
+        name: 'abcd',
+        game_number: 3
       },
-      form: {
+      gameForm: {
         name: '',
         cover: '',
         duration: ''
       },
       pledgeForm: {
-        amount: 10
-      }
+        amount: 1
+      },
+      tableData: [{
+        date: '2016-05-03',
+        name: '王小虎',
+        status: '上海',
+        bet_amount: 222,
+        win: 1,
+        win_amount: 11111
+      }]
     }
   },
   computed: {
@@ -191,18 +252,34 @@ export default {
   created () {
     post('/tortoises/v1/games', {
       type: 1,
-      data: {}
+      data: {
+        game_type: 1
+      }
     }).then((res) => {
       // 接口调用成功回调
       console.log('success: ', res)
 
       this.$data.systemItems = res.data
+    }).catch((error) => {
+      console.log('err: ', error)
+    })
+    post('/tortoises/v1/games', {
+      type: 1,
+      data: {
+        game_type: 2
+      }
+    }).then((res) => {
+      // 接口调用成功回调
+      console.log('success: ', res)
       this.$data.customItems = res.data
     }).catch((error) => {
       console.log('err: ', error)
     })
   },
   methods: {
+    showList () {
+      this.betListVisible = true
+    },
     gotoDocument () {
       window.open('https://github.com/tortoisebtc/Document')
     },
@@ -231,18 +308,25 @@ export default {
       this.createGameDialogVisible = true
     },
     confirmCreateGame () {
-      this.createGameDialogVisible = false
+      createGame(this.connectAddress, this.gameForm)
+        .then((txHash) => {
+          this.createGameDialogVisible = false
+          console.log(txHash)
+        })
+        .catch((error) => console.log(error))
     },
     betHandler () {
       this.centerDialogVisible = false
 
-      betting(this.connectAddress, '0x8ac7230489e80000')
+      console.log('bet info: ', this.gameDetail.game_number, this.betAmount, this.bigsmallradio)
+      betting(this.connectAddress, {game_number: this.gameDetail.game_number, choice: this.bigsmallradio, amount: this.betAmount})
         .then((txHash) => console.log(txHash))
         .catch((error) => console.log(error))
     },
-    clickItemHandler (id) {
-      console.log('parent ', id)
+    clickItemHandler (parentObj) {
+      console.log('parent ', parentObj)
       this.centerDialogVisible = true
+      this.gameDetail = parentObj
     },
     connectWallet () {
       console.log('click ', this.connectStatus)
@@ -412,7 +496,7 @@ export default {
 
   .betdetail-content {
     width: 400px;
-    height: 200px;
+    /* height: 200px; */
     font-size: 20px;
     font-weight: 400;
     margin-left: 10px;

@@ -9,12 +9,14 @@
             <div>Status: {{GAME_STATUS[parseInt(parentObj.status)]}} </div>
             <!-- <div>users: jfjskjdf </div> -->
             <div>Time Left: {{parseInt(parentObj.remainTime / 60)}} mins</div>
+            <div>Owner: <span v-if="parentObj.address" class="owneraddress">{{parentObj.address.substring(0, 7) + '...' + parentObj.address.substr(-4, 4)}}</span> <i class="el-icon-copy-document" @click.stop="copyAddress"></i></div>
         </div>
 
     </div>
 </template>
 
 <script>
+
 export default {
   props: {
     parentObj: {},
@@ -37,6 +39,18 @@ export default {
     clickItem (data) {
       console.log('child click', data)
       this.$emit('clickItemEvent', data)
+    },
+    copyAddress () {
+      console.log('copy>')
+      let that = this
+      this.$copyText(this.parentObj.address).then(function (e) {
+        that.$message({
+          message: '复制成功',
+          type: 'success'
+        })
+      }, function (e) {
+        that.$message.error('复制失败')
+      })
     }
   }
 }
@@ -65,6 +79,7 @@ export default {
     margin-top: 10px;
     margin-left: 20px;
     font-size: 18px;
+    cursor: pointer;
 }
 
 .citem-right >  div {

@@ -15,7 +15,7 @@ export function connectWallet () {
   })
 }
 
-export function betting (address, value) {
+export function betting (address, data) {
   return new Promise((resolve, reject) => {
     window.ethereum
       .request({
@@ -24,13 +24,40 @@ export function betting (address, value) {
           {
             from: address,
             to: contractAddress,
-            value: value, // 10 matic
-            data: myContract.methods.betting().encodeABI(),
+            value: data.amount, // 10 matic
+            data: myContract.methods.betting(data.game_number, data.choice).encodeABI(),
             chainId: 20220108
           }
         ]
       })
-      .then((txHash) => resolve)
+      .then((txHash) => {
+        console.log('bet hash: ', txHash)
+        resolve(txHash)
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
+}
+
+export function createGame (address, data) {
+  return new Promise((resolve, reject) => {
+    window.ethereum
+      .request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: address,
+            to: contractAddress,
+            data: myContract.methods.createCustomGame(data.name, data.cover, data.duration).encodeABI(),
+            chainId: 20220108
+          }
+        ]
+      })
+      .then((txHash) => {
+        console.log('bet hash: ', txHash)
+        resolve(txHash)
+      })
       .catch((error) => {
         reject(error)
       })
@@ -52,6 +79,7 @@ export function pledge (address, value) {
         ]
       })
       .then((txHash) => {
+        console.log('pledge hash: ', txHash)
         resolve(txHash)
       })
       .catch((e) => {
